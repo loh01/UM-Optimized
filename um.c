@@ -139,8 +139,6 @@ static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registe
 
                 *prog_count = *prog_count + 1;
 
-                // fprintf(stderr, "%u\n", opcode);
-
                 /* Executes the specified instruction */
                 switch (opcode) {
                         case 0 :
@@ -187,8 +185,7 @@ static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registe
                                 load_value(registers, a, lvalue);
                                 break;
                         default:
-                                // fprintf(stderr, "%u\n", opcode);
-                                // fprintf(stderr, "Error: Invalid Instruction\n");
+                                fprintf(stderr, "Error: Invalid Instruction\n");
                                 exit(EXIT_FAILURE);
 
                 }
@@ -204,6 +201,14 @@ static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registe
                 } 
         }
 }
+
+
+
+/******************************************************
+*
+* Functions from mem_interface
+*
+******************************************************/
 
 static inline memory init_mem() 
 {
@@ -319,6 +324,16 @@ static inline void free_unmapped_list(unmapped_list unmapped)
 
         free(unmapped);
 }
+
+
+
+
+/******************************************************
+*
+* Functions from ops_interface
+*
+******************************************************/
+
 
 /* Function: initialize_regs
  * Does: Initializes registers
@@ -568,7 +583,6 @@ static inline void map_segment(uint32_t registers[], memory mem, unmapped_list u
         
         unsigned num_words = at_reg(registers, c);
         uint32_t curr_memsize = mem->memlength;
-        // fprintf(stderr, "Memlength: %u\n", curr_memsize);  
         uint32_t new_index;
 
         /* Checks if there are any unmapped segments */
@@ -577,7 +591,7 @@ static inline void map_segment(uint32_t registers[], memory mem, unmapped_list u
                 new_index = unmapped->identifiers[unmapped->lastindex];
                 (unmapped->lastindex)--;
 
-                mem->segments[new_index] = realloc(mem->segments[new_index], sizeof(uint32_t) * (num_words + 2));
+                mem->segments[new_index] = malloc(sizeof(uint32_t) * (num_words + 2));
                 mem->segments[new_index][0] = 1;
                 mem->segments[new_index][1] = num_words;
 
@@ -741,6 +755,13 @@ static inline void load_value(uint32_t registers[], unsigned a, unsigned lvalue)
 }
 
 
+
+/******************************************************
+*
+* Functions from io_dev
+*
+******************************************************/
+
 static inline uint32_t io_input()
 {
         char value = fgetc(stdin);
@@ -755,13 +776,11 @@ static inline void io_output(uint32_t word)
 
 
 
-
-
-
-
-
-
-
+/******************************************************
+*
+* Functions from bitpack
+*
+******************************************************/
 
 static inline uint64_t shl(uint64_t word, unsigned bits)
 {

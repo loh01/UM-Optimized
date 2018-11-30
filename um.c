@@ -15,24 +15,20 @@ Except_T Bitpack_Overflow = { "Overflow packing bits" };
 typedef struct memory {
         uint32_t** segments;
         uint32_t memlength;
+
+        uint32_t *unmapidentifiers;
+        uint32_t unmaplastindex;
+        uint32_t unmaplistlength;
 } *memory;
 
-typedef struct unmapped_list {
-        uint32_t *identifiers;
-        uint32_t lastindex;
-        uint32_t listlength;
-} *unmapped_list;
-
-static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registers[], 
+static inline void run_prog(memory mem, uint32_t registers[], 
               uint32_t *prog_count);
 
 static inline memory init_mem();
 static inline void init_prog(memory mem, FILE *fp, uint32_t num_words);
-static inline unmapped_list init_unmapped_list();
 static inline uint32_t get_word(memory mem, unsigned seg_num, unsigned offset);
 static inline void put_word(memory mem, unsigned seg_num, unsigned offset, uint32_t val);
 static inline void free_mem(memory mem);
-static inline void free_unmapped_list(unmapped_list unmapped);
 
 static inline void initialize_regs(uint32_t registers[]);
 static inline uint32_t at_reg(uint32_t registers[], unsigned index);
@@ -50,10 +46,8 @@ static inline void multiplication (uint32_t registers[], unsigned a, unsigned b,
 static inline void division(uint32_t registers[], unsigned a, unsigned b, unsigned c);
 static inline void bitwise_NAND(uint32_t registers[], unsigned a, unsigned b, unsigned c);
 static inline void halt(memory mem, uint32_t *prog_count);
-static inline void map_segment(uint32_t registers[], memory mem, unmapped_list unmapped, unsigned b, 
-                 unsigned c);
-static inline void unmap_segment(uint32_t registers[], memory mem, unmapped_list unmapped, 
-                   unsigned c);
+static inline void map_segment(uint32_t registers[], memory mem, unsigned b, unsigned c);
+static inline void unmap_segment(uint32_t registers[], memory mem, unsigned c);
 static inline void output(uint32_t registers[], unsigned c);
 static inline void input(uint32_t registers[], unsigned c);
 static inline void load_program(memory mem, uint32_t registers[], uint32_t *prog_count, 
@@ -91,7 +85,6 @@ int main(int argc, char *argv[]) {
 
         /* Main UM components */
         memory mem;
-        unmapped_list unmapped;
         uint32_t registers[8];
         uint32_t prog_count = 0;
 
@@ -101,18 +94,16 @@ int main(int argc, char *argv[]) {
 
         /* Initializes main UM components */
         initialize_regs(registers);
-        unmapped = init_unmapped_list();
         mem = init_mem();
 
         init_prog(mem, fp, num_words);
 
         /* Runs the UM */
-        run_prog(mem, unmapped, registers, &prog_count);
+        run_prog(mem, registers, &prog_count);
 
         /* Frees memory */
         fclose(fp);
         free_mem(mem);
-        free_unmapped_list(unmapped);
 
         exit(EXIT_SUCCESS);
 }
@@ -122,8 +113,7 @@ int main(int argc, char *argv[]) {
  * Paramters: Seq_T, Seq_T, UArray_T, uint32_t*
  * Returns: none
  */
-static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registers[], 
-              uint32_t *prog_count) {
+static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_count) {
         bool prog_change = false;
 
         uint32_t curr_length = mem->segments[0][1];
@@ -166,10 +156,10 @@ static inline void run_prog(memory mem, unmapped_list unmapped, uint32_t registe
                                 halt(mem, prog_count);
                                 break;
                         case 8 :
-                                map_segment(registers, mem, unmapped, b, c);
+                                map_segment(registers, mem, b, c);
                                 break;
                         case 9 :
-                                unmap_segment(registers, mem, unmapped, c);
+                                unmap_segment(registers, mem, c);
                                 break;
                         case 10 :
                                 output(registers, c);
@@ -215,6 +205,10 @@ static inline memory init_mem()
         memory mem = malloc(sizeof(* mem));
         mem->memlength = 1;
         mem->segments = malloc(sizeof(uint32_t*));
+
+        mem->unmapidentifiers = calloc(100, sizeof(uint32_t));
+        mem->unmaplastindex = 0;
+        mem->unmaplistlength = 100;
 
         return mem;
 }
@@ -262,16 +256,6 @@ static inline void init_prog(memory mem, FILE *fp, uint32_t num_words)
 
 }
 
-static inline unmapped_list init_unmapped_list()
-{
-        unmapped_list unmapped = malloc(sizeof(*unmapped));
-        unmapped->identifiers = calloc(100, sizeof(uint32_t));
-        unmapped->lastindex = 0;
-        unmapped->listlength = 100;
-
-        return unmapped;
-}
-
 static inline uint32_t get_word(memory mem, unsigned seg_num, unsigned offset)
 {
         if (mem == NULL) {
@@ -312,20 +296,12 @@ static inline void free_mem(memory mem)
 
         free(mem->segments);
 
-        free(mem);
-}
-
-static inline void free_unmapped_list(unmapped_list unmapped)
-{
-
-        if (unmapped->identifiers != NULL) {
-                free(unmapped->identifiers);
+        if (mem->unmapidentifiers != NULL) {
+                free(mem->unmapidentifiers);
         }
 
-        free(unmapped);
+        free(mem);
 }
-
-
 
 
 /******************************************************
@@ -568,15 +544,14 @@ static inline void halt(memory mem, uint32_t *prog_count)
  * Paramters: UArray_T, Seq_T, Seq_T, unsigned, unsigned
  * Returns: None
  */
-static inline void map_segment(uint32_t registers[], memory mem, unmapped_list unmapped, unsigned b, 
-                 unsigned c)
+static inline void map_segment(uint32_t registers[], memory mem, unsigned b, unsigned c)
 {
         if (b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
                 exit(EXIT_FAILURE);
         }
 
-        if (mem == NULL || unmapped == NULL) {
+        if (mem == NULL) {
                 fprintf(stdout, "Error: Memory not initialized");  
                 exit(EXIT_FAILURE);
         }
@@ -586,10 +561,10 @@ static inline void map_segment(uint32_t registers[], memory mem, unmapped_list u
         uint32_t new_index;
 
         /* Checks if there are any unmapped segments */
-        if (unmapped->lastindex != 0) {
+        if (mem->unmaplastindex != 0) {
                 /* Gets the segment number of an unmapped segment */
-                new_index = unmapped->identifiers[unmapped->lastindex];
-                (unmapped->lastindex)--;
+                new_index = mem->unmapidentifiers[mem->unmaplastindex];
+                (mem->unmaplastindex)--;
 
                 mem->segments[new_index] = malloc(sizeof(uint32_t) * (num_words + 2));
                 mem->segments[new_index][0] = 1;
@@ -621,15 +596,14 @@ static inline void map_segment(uint32_t registers[], memory mem, unmapped_list u
  * Paramters: UArray_T, Seq_T, Seq_T, unsigned
  * Returns: None
  */
-static inline void unmap_segment(uint32_t registers[], memory mem, unmapped_list unmapped, 
-                   unsigned c)
+static inline void unmap_segment(uint32_t registers[], memory mem, unsigned c)
 {
         if (c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
                 exit(EXIT_FAILURE);
         }
 
-        if (mem == NULL || unmapped == NULL) {
+        if (mem == NULL) {
                 fprintf(stdout, "Error: Memory not initialized");  
                 exit(EXIT_FAILURE);
         }
@@ -650,14 +624,14 @@ static inline void unmap_segment(uint32_t registers[], memory mem, unmapped_list
                 exit(EXIT_FAILURE);
         }
 
-        if (unmapped->lastindex == (unmapped->listlength - 1)) {
-                size_t newsize = sizeof(uint32_t) * (unmapped->listlength * 2);
-                unmapped->identifiers = realloc(unmapped->identifiers, newsize);
-                unmapped->listlength = unmapped->listlength * 2;
+        if (mem->unmaplastindex == (mem->unmaplistlength - 1)) {
+                size_t newsize = sizeof(uint32_t) * (mem->unmaplistlength * 2);
+                mem->unmapidentifiers = realloc(mem->unmapidentifiers, newsize);
+                mem->unmaplistlength = mem->unmaplistlength * 2;
         } 
         
-        (unmapped->lastindex)++;
-        unmapped->identifiers[unmapped->lastindex] = index;
+        (mem->unmaplastindex)++;
+        mem->unmapidentifiers[mem->unmaplastindex] = index;
         
 }
 

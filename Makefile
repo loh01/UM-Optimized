@@ -1,9 +1,9 @@
-CC = gcc -O2
+CC = gcc -O3
 
 IFLAGS  = -I/comp/40/include -I/usr/sup/cii40/include/cii
 CFLAGS  = -g -std=gnu99 -Wall -Wextra -Werror -pedantic $(IFLAGS)
 LDFLAGS = -g -L/comp/40/lib64 -L/usr/sup/cii40/lib64
-LDLIBS  = -lcii40-O2 -l40locality -lm
+LDLIBS  = -lcii40 -l40locality -lm
 
 EXECS   = um
 

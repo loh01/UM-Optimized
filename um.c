@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <except.h>
 
 #include "except.h"
 #include "assert.h"
@@ -21,8 +20,7 @@ typedef struct memory {
         uint32_t unmaplistlength;
 } *memory;
 
-static inline void run_prog(memory mem, uint32_t registers[], 
-              uint32_t *prog_count);
+static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_count);
 
 static inline memory init_mem();
 static inline void init_prog(memory mem, FILE *fp, uint32_t num_words);
@@ -191,8 +189,6 @@ static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_cou
                 } 
         }
 }
-
-
 
 /******************************************************
 *
@@ -728,8 +724,6 @@ static inline void load_value(uint32_t registers[], unsigned a, unsigned lvalue)
         update_reg(registers, a, lvalue);
 }
 
-
-
 /******************************************************
 *
 * Functions from io_dev
@@ -747,8 +741,6 @@ static inline void io_output(uint32_t word)
 {
         fputc(word, stdout);
 }
-
-
 
 /******************************************************
 *

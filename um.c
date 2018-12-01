@@ -20,51 +20,63 @@ typedef struct memory {
         uint32_t unmaplistlength;
 } *memory;
 
-static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_count);
+static inline void run_prog(memory mem, uint32_t registers[], 
+    uint32_t *prog_count);
 
 static inline memory init_mem();
 static inline void init_prog(memory mem, FILE *fp, uint32_t num_words);
 static inline uint32_t get_word(memory mem, unsigned seg_num, unsigned offset);
-static inline void put_word(memory mem, unsigned seg_num, unsigned offset, uint32_t val);
+static inline void put_word(memory mem, unsigned seg_num, unsigned offset, 
+    uint32_t val);
 static inline void free_mem(memory mem);
 
 static inline void initialize_regs(uint32_t registers[]);
 static inline uint32_t at_reg(uint32_t registers[], unsigned index);
-static inline void update_reg(uint32_t registers[], unsigned index, uint32_t word);
-
-static inline void decode_word(uint32_t word, uint32_t *opcode, unsigned *a, unsigned *b, 
-                 unsigned *c, unsigned *lvalue);
-static inline void conditional_move(uint32_t registers[], unsigned a, unsigned b, unsigned c);
-static inline void segmented_load(uint32_t registers[], memory mem, unsigned a, unsigned b, 
-                    unsigned c);
-static inline void segmented_store(uint32_t registers[], memory mem, unsigned a, unsigned b, 
-                     unsigned c);
-static inline void addition(uint32_t registers[], unsigned a, unsigned b, unsigned c);
-static inline void multiplication (uint32_t registers[], unsigned a, unsigned b, unsigned c);
-static inline void division(uint32_t registers[], unsigned a, unsigned b, unsigned c);
-static inline void bitwise_NAND(uint32_t registers[], unsigned a, unsigned b, unsigned c);
+static inline void update_reg(uint32_t registers[], unsigned index, 
+    uint32_t word);
+static inline void decode_word(uint32_t word, uint32_t *opcode, unsigned *a, 
+    unsigned *b, unsigned *c, unsigned *lvalue);
+static inline void conditional_move(uint32_t registers[], unsigned a, 
+    unsigned b, unsigned c);
+static inline void segmented_load(uint32_t registers[], memory mem, unsigned a, 
+    unsigned b, unsigned c);
+static inline void segmented_store(uint32_t registers[], memory mem, 
+    unsigned a, unsigned b, unsigned c);
+static inline void addition(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c);
+static inline void multiplication (uint32_t registers[], unsigned a, 
+    unsigned b, unsigned c);
+static inline void division(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c);
+static inline void bitwise_NAND(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c);
 static inline void halt(memory mem, uint32_t *prog_count);
-static inline void map_segment(uint32_t registers[], memory mem, unsigned b, unsigned c);
+static inline void map_segment(uint32_t registers[], memory mem, unsigned b, 
+    unsigned c);
 static inline void unmap_segment(uint32_t registers[], memory mem, unsigned c);
 static inline void output(uint32_t registers[], unsigned c);
 static inline void input(uint32_t registers[], unsigned c);
-static inline void load_program(memory mem, uint32_t registers[], uint32_t *prog_count, 
-                  unsigned b, unsigned c);
-static inline void load_value(uint32_t registers[], unsigned a, unsigned lvalue);
+static inline void load_program(memory mem, uint32_t registers[], 
+    uint32_t *prog_count, unsigned b, unsigned c);
+static inline void load_value(uint32_t registers[], unsigned a, 
+    unsigned lvalue);
 
 static inline uint32_t io_input();
 static inline void io_output(uint32_t word);
 
-
 static inline bool Bitpack_fitsu(uint64_t n, unsigned width);
 static inline bool Bitpack_fitss( int64_t n, unsigned width);
-static inline uint64_t Bitpack_getu(uint64_t word, unsigned width, unsigned lsb);
-static inline int64_t Bitpack_gets(uint64_t word, unsigned width, unsigned lsb);
-static inline uint64_t Bitpack_newu(uint64_t word, unsigned width, unsigned lsb, uint64_t value);
-static inline uint64_t Bitpack_news(uint64_t word, unsigned width, unsigned lsb, int64_t value);
+static inline uint64_t Bitpack_getu(uint64_t word, unsigned width, 
+    unsigned lsb);
+static inline int64_t Bitpack_gets(uint64_t word, unsigned width, 
+    unsigned lsb);
+static inline uint64_t Bitpack_newu(uint64_t word, unsigned width, 
+    unsigned lsb, uint64_t value);
+static inline uint64_t Bitpack_news(uint64_t word, unsigned width, 
+    unsigned lsb, int64_t value);
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
         if (argc == 1) {
                 fprintf(stdout, "Error: A UM file not provided\n");
                 exit(EXIT_FAILURE);
@@ -111,7 +123,9 @@ int main(int argc, char *argv[]) {
  * Paramters: Seq_T, Seq_T, UArray_T, uint32_t*
  * Returns: none
  */
-static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_count) {
+static inline void run_prog(memory mem, uint32_t registers[], 
+    uint32_t *prog_count) 
+{
         bool prog_change = false;
 
         uint32_t curr_length = mem->segments[0][1];
@@ -190,6 +204,8 @@ static inline void run_prog(memory mem, uint32_t registers[], uint32_t *prog_cou
         }
 }
 
+
+
 /******************************************************
 *
 * Functions from mem_interface
@@ -265,7 +281,8 @@ static inline uint32_t get_word(memory mem, unsigned seg_num, unsigned offset)
 
 }
 
-static inline void put_word(memory mem, unsigned seg_num, unsigned offset, uint32_t val)
+static inline void put_word(memory mem, unsigned seg_num, unsigned offset, 
+    uint32_t val)
 {
         if (mem == NULL) {
                 fprintf(stdout, "Error: Memory is uninitialized");
@@ -340,7 +357,8 @@ static inline uint32_t at_reg(uint32_t registers[], unsigned index)
  * Paramters: UArray_T, unsigned, uint32_t
  * Returns: None
  */
-static inline void update_reg(uint32_t registers[], unsigned index, uint32_t word)
+static inline void update_reg(uint32_t registers[], unsigned index, 
+    uint32_t word)
 {
         if (index > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -356,8 +374,8 @@ static inline void update_reg(uint32_t registers[], unsigned index, uint32_t wor
  * Paramters: uint32_t, uint32_t*, unsigned*, unsigned*, unsigned*, unsigned*
  * Returns: None
  */
-static inline void decode_word(uint32_t word, uint32_t *opcode, unsigned *a, unsigned *b, 
-                 unsigned *c, unsigned *lvalue)
+static inline void decode_word(uint32_t word, uint32_t *opcode, unsigned *a, 
+    unsigned *b, unsigned *c, unsigned *lvalue)
 {
         *opcode = (uint32_t)Bitpack_getu(word, 4, 28);
 
@@ -379,7 +397,8 @@ static inline void decode_word(uint32_t word, uint32_t *opcode, unsigned *a, uns
  * Paramters: UArray_T, unsigned, unsigned, unsigned
  * Returns: None
  */
-static inline void conditional_move(uint32_t registers[], unsigned a, unsigned b, unsigned c)
+static inline void conditional_move(uint32_t registers[], unsigned a, 
+    unsigned b, unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -399,8 +418,8 @@ static inline void conditional_move(uint32_t registers[], unsigned a, unsigned b
  * Paramters: UArray_T, Seq_T, unsigned, unsigned
  * Returns: None
  */
-static inline void segmented_load(uint32_t registers[], memory mem, unsigned a, unsigned b, 
-                    unsigned c)
+static inline void segmented_load(uint32_t registers[], memory mem, unsigned a, 
+    unsigned b, unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -424,8 +443,8 @@ static inline void segmented_load(uint32_t registers[], memory mem, unsigned a, 
  * Paramters: UArray_T, Seq_T, unsigned, unsigned
  * Returns: None
  */
-static inline void segmented_store(uint32_t registers[], memory mem, unsigned a, unsigned b, 
-                     unsigned c)
+static inline void segmented_store(uint32_t registers[], memory mem, 
+    unsigned a, unsigned b, unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -449,7 +468,8 @@ static inline void segmented_store(uint32_t registers[], memory mem, unsigned a,
  * Paramters: UArray_T, unsigned, unsigned, unsigned
  * Returns: None
  */
-static inline void addition(uint32_t registers[], unsigned a, unsigned b, unsigned c)
+static inline void addition(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stderr, "Error: Invalid register index provided");
@@ -468,7 +488,8 @@ static inline void addition(uint32_t registers[], unsigned a, unsigned b, unsign
  * Paramters: UArray_T, unsigned, unsigned, unsigned
  * Returns: None
  */
-static inline void multiplication (uint32_t registers[], unsigned a, unsigned b, unsigned c)
+static inline void multiplication (uint32_t registers[], unsigned a, 
+    unsigned b, unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -487,7 +508,8 @@ static inline void multiplication (uint32_t registers[], unsigned a, unsigned b,
  * Paramters: UArray_T, unsigned, unsigned, unsigned
  * Returns: None
  */
-static inline void division(uint32_t registers[], unsigned a, unsigned b, unsigned c)
+static inline void division(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -506,7 +528,8 @@ static inline void division(uint32_t registers[], unsigned a, unsigned b, unsign
  * Paramters: UArray_T, unsigned, unsigned, unsigned
  * Returns: None
  */
-static inline void bitwise_NAND(uint32_t registers[], unsigned a, unsigned b, unsigned c)
+static inline void bitwise_NAND(uint32_t registers[], unsigned a, unsigned b, 
+    unsigned c)
 {
         if (a > 7 || b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -540,7 +563,8 @@ static inline void halt(memory mem, uint32_t *prog_count)
  * Paramters: UArray_T, Seq_T, Seq_T, unsigned, unsigned
  * Returns: None
  */
-static inline void map_segment(uint32_t registers[], memory mem, unsigned b, unsigned c)
+static inline void map_segment(uint32_t registers[], memory mem, unsigned b, 
+    unsigned c)
 {
         if (b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");
@@ -562,7 +586,8 @@ static inline void map_segment(uint32_t registers[], memory mem, unsigned b, uns
                 new_index = mem->unmapidentifiers[mem->unmaplastindex];
                 (mem->unmaplastindex)--;
 
-                mem->segments[new_index] = malloc(sizeof(uint32_t) * (num_words + 2));
+                mem->segments[new_index] = 
+                    malloc(sizeof(uint32_t) * (num_words + 2));
                 mem->segments[new_index][0] = 1;
                 mem->segments[new_index][1] = num_words;
 
@@ -574,7 +599,8 @@ static inline void map_segment(uint32_t registers[], memory mem, unsigned b, uns
 
                 new_index = curr_memsize;
 
-                mem->segments[new_index] = malloc(sizeof(uint32_t) * (num_words + 2));
+                mem->segments[new_index] = 
+                    malloc(sizeof(uint32_t) * (num_words + 2));
                 mem->segments[new_index][0] = 1;
                 mem->segments[new_index][1] = num_words;
         }
@@ -671,8 +697,8 @@ static inline void input(uint32_t registers[], unsigned c)
  * Paramters: Seq_T, UArray_T, uint32_t*, unsigned, unsigned
  * Returns: None
  */
-static inline void load_program(memory mem, uint32_t registers[], uint32_t *prog_count, 
-                  unsigned b, unsigned c)
+static inline void load_program(memory mem, uint32_t registers[], 
+        uint32_t *prog_count, unsigned b, unsigned c)
 {
         if (b > 7 || c > 7) {
                 fprintf(stdout, "Error: Invalid register index provided");

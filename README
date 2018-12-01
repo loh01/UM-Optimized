@@ -1,0 +1,37 @@
+COMP40
+Homework 7: README
+Lionel Oh (loh01) and Naoki Okada (nokada01)
+
+
+Help or collaborative work: All the TAs!!
+
+Which routine in the final UM takes up the most time: malloc 
+(called 1,414,837 times)
+
+On whether the assembly code could be improved: 
+- There seem to not be an obvious way to improve the assembly code
+- free() and malloc() are resource draining, but we have optimized the process 
+by calling them directly as much as we can, and reusing memory as much as we 
+can.
+- Updating and retrieving the values of registers takes up quite a bit of 
+resources and time since they are constantly accessed. It is difficult to 
+improve the assembly code for this as given the operations we are doing of 
+loading and retrieving values from the registers, there is inherently a minimal 
+number of instructions for execution, and from the assembly code, there does 
+not seem to be an obvious way of making it more efficient.
+- Another resource intensive operation is accessing the word within the getc 
+function. Looking at the assembly code, there is no other way to obtain the 
+data than accessing the relevant memory
+- The switch statement that takes in an instruction code is also resource 
+draining as it gets called every time an instruction is executed. However, 
+there is no obvious way to improve the assembly code here, because switch 
+statements already have less instructions than the alternative if-else 
+statement option, and is necessary for the function of our UM.
+- Lastly, a significant source of resource drain comes from checking curr_length
+at the end of run_prog. We are already using registers properly by initializing 
+the needed variables outside the while loop once, and changing them when 
+necessary. Hence, there are no unnecessary memory accesses, and it is a 
+required step to determine the exit condition of the function.
+
+Number of hours spent analyzing the assignment: 1
+Number of hours spent solving the problems after our analysis: 15
